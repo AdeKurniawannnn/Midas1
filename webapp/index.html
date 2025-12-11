@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SERP Aggregator - Google Search Results API</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="brand-icon">🔍</span>
+            <span class="brand-text">SERP Aggregator</span>
+        </div>
+        <div class="nav-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#how-it-works" class="nav-link">How it Works</a>
+            <a href="#search" class="nav-link highlight">Start Search</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section with Search Form -->
+    <section class="hero-search" id="search">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                Google <span class="gradient-text">SERP</span> Aggregator
+            </h1>
+            <p class="hero-subtitle">Fetch, aggregate, and deduplicate Google search results across multiple pages</p>
+
+            <div class="search-card hero-card">
+                <!-- Query Input -->
+                <div class="input-group">
+                    <label for="query-input">Search Query</label>
+                    <div class="query-input-wrapper">
+                        <span class="query-icon">🔎</span>
+                        <input
+                            type="text"
+                            id="query-input"
+                            placeholder="Enter your search query..."
+                            autocomplete="off"
+                        >
+                    </div>
+                </div>
+
+                <!-- Options -->
+                <div class="options-group">
+                    <h4>Search Options</h4>
+                    <div class="options-grid">
+                        <div class="option-field">
+                            <label for="max-pages">Max Pages</label>
+                            <input type="number" id="max-pages" value="5" min="1" max="25">
+                        </div>
+                        <div class="option-field">
+                            <label for="concurrency">Concurrency</label>
+                            <input type="number" id="concurrency" value="10" min="1" max="50">
+                        </div>
+                        <div class="option-field">
+                            <label for="country">Country</label>
+                            <select id="country">
+                                <option value="us">United States</option>
+                                <option value="uk">United Kingdom</option>
+                                <option value="id">Indonesia</option>
+                                <option value="de">Germany</option>
+                                <option value="fr">France</option>
+                                <option value="jp">Japan</option>
+                            </select>
+                        </div>
+                        <div class="option-field">
+                            <label for="language">Language</label>
+                            <select id="language">
+                                <option value="en">English</option>
+                                <option value="id">Indonesian</option>
+                                <option value="de">German</option>
+                                <option value="fr">French</option>
+                                <option value="ja">Japanese</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <button id="search-btn" class="search-button">
+                    <span class="btn-text">🚀 Start Search</span>
+                    <span class="btn-loader" style="display: none;">
+                        <svg class="spinner" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="60" stroke-dashoffset="20"/>
+                        </svg>
+                        Searching...
+                    </span>
+                </button>
+
+                <!-- Progress -->
+                <div id="progress-container" class="progress-container" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <p class="progress-text" id="progress-text">Initializing...</p>
+                </div>
+            </div>
+
+            <!-- Results Area -->
+            <div id="results-container" class="results-container" style="display: none;">
+                <div class="results-header">
+                    <h3>📊 Search Results</h3>
+                    <div class="results-actions">
+                        <button class="action-btn" id="copy-btn" title="Copy JSON">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn" id="download-btn" title="Download JSON">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="results-stats" id="results-stats"></div>
+
+                <!-- Tabs -->
+                <div class="results-tabs">
+                    <button class="tab-btn active" data-tab="organic">🔗 Organic Results</button>
+                    <button class="tab-btn" data-tab="related">🔄 Related Searches</button>
+                    <button class="tab-btn" data-tab="paa">❓ People Also Ask</button>
+                    <button class="tab-btn" data-tab="raw">📝 Raw JSON</button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <div id="tab-organic" class="tab-pane active"></div>
+                    <div id="tab-related" class="tab-pane"></div>
+                    <div id="tab-paa" class="tab-pane"></div>
+                    <div id="tab-raw" class="tab-pane"></div>
+                </div>
+            </div>
+
+            <!-- Error Display -->
+            <div id="error-container" class="error-container" style="display: none;">
+                <div class="error-icon">⚠️</div>
+                <p id="error-message"></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <h2 class="section-title">Powerful <span class="gradient-text">Features</span></h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                </div>
+                <h3>Multi-Page Search</h3>
+                <p>Fetch up to 25 pages of search results in a single request</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <h3>Smart Deduplication</h3>
+                <p>Automatically remove duplicate URLs across all pages</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </div>
+                <h3>Concurrent Requests</h3>
+                <p>Parallel fetching for maximum speed and efficiency</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                </div>
+                <h3>Export Results</h3>
+                <p>Download results as JSON or copy to clipboard</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works -->
+    <section id="how-it-works" class="how-it-works">
+        <h2 class="section-title">How it <span class="gradient-text">Works</span></h2>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Enter Query</h3>
+                    <p>Type your search query and set options</p>
+                </div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Fetch Pages</h3>
+                    <p>API fetches multiple result pages concurrently</p>
+                </div>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Aggregate</h3>
+                    <p>Results are deduplicated and ranked</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="brand-icon">🔍</span>
+                <span class="brand-text">SERP Aggregator</span>
+            </div>
+            <p class="footer-text">Powered by Bright Data SERP API</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
